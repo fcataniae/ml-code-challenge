@@ -1,7 +1,7 @@
 package com.meli.codechallenge.integration;
 
 
-import com.meli.codechallenge.dto.Dna;
+import com.meli.codechallenge.dto.RequestData;
 import com.meli.codechallenge.handler.HealthHandler;
 import com.meli.codechallenge.handler.MutantHandler;
 import com.meli.codechallenge.router.Router;
@@ -30,7 +30,7 @@ class IntegrationTest {
 
         client.post()
                 .uri("/mutant")
-                .bodyValue(new Dna(new String[]{"AAAA", "AATC", "TCAG", "TCCA"}))
+                .bodyValue(new RequestData(new String[]{"AAAA", "AATC", "TCAG", "TCCA"}))
                 .exchange()
                 .expectStatus().isOk();
     }
@@ -40,7 +40,7 @@ class IntegrationTest {
 
         client.post()
                 .uri("/mutant")
-                .bodyValue(new Dna(new String[]{"ATCG", "AATC", "TCAG", "TCCA"}))
+                .bodyValue(new RequestData(new String[]{"ATCG", "AATC", "TCAG", "TCCA"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }
@@ -49,7 +49,7 @@ class IntegrationTest {
     void test_nullDnaSequence_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new Dna())
+                .bodyValue(new RequestData())
                 .exchange()
                 .expectStatus().isBadRequest();
     }
@@ -58,7 +58,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_invalidMatrix_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new Dna(new String[]{"AAAAA", "AATC", "TCG", "TCCA"}))
+                .bodyValue(new RequestData(new String[]{"AAAAA", "AATC", "TCG", "TCCA"}))
                 .exchange()
                 .expectStatus().isBadRequest();
     }
@@ -67,7 +67,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_MxNmatrix_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new Dna(new String[]{"AAAA", "AATC", "TCGT"}))
+                .bodyValue(new RequestData(new String[]{"AAAA", "AATC", "TCGT"}))
                 .exchange()
                 .expectStatus().isBadRequest();
     }

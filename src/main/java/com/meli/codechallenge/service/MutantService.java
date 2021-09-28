@@ -1,6 +1,6 @@
 package com.meli.codechallenge.service;
 
-import com.meli.codechallenge.dto.Dna;
+import com.meli.codechallenge.dto.RequestData;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -9,6 +9,8 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static java.lang.Boolean.TRUE;
 
 @Service
 public class MutantService {
@@ -29,10 +31,10 @@ public class MutantService {
     private static final String VALID_SEQUENCE_REGEX = "[ATCG]+";
 
 
-    public Mono<ServerResponse> applyMutantValidation(Dna dna) {
+    public Mono<ServerResponse> applyMutantValidation(RequestData dna) {
 
         return isMutant(dna.getDna())
-                .flatMap(isMutant -> isMutant ? ServerResponse.ok().build() : ServerResponse.status(HttpStatus.FORBIDDEN).build())
+                .flatMap(isMutant -> TRUE.equals(isMutant) ? ServerResponse.ok().build() : ServerResponse.status(HttpStatus.FORBIDDEN).build())
                 .switchIfEmpty(ServerResponse.badRequest().build());
     }
 

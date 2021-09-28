@@ -1,6 +1,6 @@
 package com.meli.codechallenge.handler;
 
-import com.meli.codechallenge.dto.Dna;
+import com.meli.codechallenge.dto.RequestData;
 import com.meli.codechallenge.service.MutantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class MutantHandler {
 
     public Mono<ServerResponse> isMutant(ServerRequest serverRequest) {
 
-        return serverRequest.bodyToMono(Dna.class)
+        return serverRequest.bodyToMono(RequestData.class)
                 .flatMap(mutantService::applyMutantValidation);
     }
 }
