@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class HealthHandler {
 
-    public Mono<ServerResponse> hello(ServerRequest serverRequest) {
+    public Mono<ServerResponse> health(ServerRequest serverRequest) {
 
         return ServerResponse.ok().bodyValue("up");
     }

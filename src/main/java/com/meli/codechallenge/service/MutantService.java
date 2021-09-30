@@ -1,10 +1,14 @@
 package com.meli.codechallenge.service;
 
 import com.meli.codechallenge.dto.RequestData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,30 +34,49 @@ public class MutantService {
 
     private static final String VALID_SEQUENCE_REGEX = "[ATCG]+";
 
+    private final Jedis jedis;
 
-    public Mono<ServerResponse> applyMutantValidation(RequestData dna) {
-
-        return isMutant(dna.getDna())
-                .flatMap(isMutant -> TRUE.equals(isMutant) ? ServerResponse.ok().build() : ServerResponse.status(HttpStatus.FORBIDDEN).build())
-                .switchIfEmpty(ServerResponse.badRequest().build());
+    @Autowired
+    public MutantService(JedisPool jedisPool) {
+        this.jedis = jedisPool.getResource();
     }
 
-    public Mono<Boolean> isMutant(String[] dna){
+    public Mono<ServerResponse> applyMutantValidation(RequestData RequestData) {
+
+        return Mono.just(RequestData.getDna())
+                .flatMap((List<String> dna) -> Mono.just(isMutantCached(dna)))
+                .flatMap(isMutant ->
+                        TRUE.equals(isMutant) ?
+                        ServerResponse.ok().build() :
+                        ServerResponse.status(HttpStatus.FORBIDDEN).build()
+                );
+    }
+
+    public boolean isMutantCached(List<String> dna){
+
+        String key = dna.toString();
+        String value = jedis.get(key);
+        if(value != null){
+            return Boolean.parseBoolean(value);
+        }
+        boolean mutant = isMutant(dna.toArray(new String[0]));
+        jedis.set(key, String.valueOf(mutant));
+        return mutant;
+    }
+
+    public boolean isMutant(String[] dna){
+
         if(validateDna(dna)) {
-            List<String> columns = getColumns(dna);
-            List<String> diagonals = getDiagonals(dna);
-            List<String> transverseDiagonals = getDiagonalsReversed(dna);
             List<String> dnaList = new ArrayList<>();
             Collections.addAll(dnaList, dna);
-            dnaList.addAll(diagonals);
-            dnaList.addAll(columns);
-            dnaList.addAll(transverseDiagonals);
-
-            return Mono.just(dnaList.stream()
+            dnaList.addAll(getDiagonalsReversed(dna));
+            dnaList.addAll(getColumns(dna));
+            dnaList.addAll(getDiagonals(dna));
+            return dnaList.stream()
                     .filter(this::validateSequence)
-                    .count() >= MIN_MUTANT_SEQUENCE_COUNT);
+                    .count() >= MIN_MUTANT_SEQUENCE_COUNT;
         }
-        return Mono.empty();
+        return false;
     }
 
 

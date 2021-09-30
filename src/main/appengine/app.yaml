@@ -1,2 +1,6 @@
 runtime: java11
 instance_class: f2
+env_variables:
+  CLOUD_SQL_CONNECTION_STRING: "r2dbc:gcp:postgres://mutants-user:franco@rock-loop-327600:us-east1:postgresql-mutants/mutants"
+  REDIS_HOST: "10.88.56.211"
+  REDIS_PORT: "6379"
