@@ -1,1 +1,4 @@
-
+project:
+  id: ${PROJECT_ID}
+  topic:
+    name: ${TOPIC_NAME}

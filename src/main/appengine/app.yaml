@@ -1,2 +1,4 @@
 runtime: java11
 instance_class: f2
+includes:
+  - .env.yaml

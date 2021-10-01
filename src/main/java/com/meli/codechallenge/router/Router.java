@@ -15,10 +15,11 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class Router {
 
     @Bean
-    public RouterFunction<ServerResponse> route(HealthHandler helloHandler, MutantHandler mutantHandler) {
+    public RouterFunction<ServerResponse> route(HealthHandler helloHandler,
+                                                MutantHandler mutantHandler) {
 
         return RouterFunctions
-                .route(GET("/_ah/health"), helloHandler::hello)
+                .route(GET("/_ah/health"), helloHandler::health)
                 .andRoute(POST("/mutant").and(accept(MediaType.APPLICATION_JSON)), mutantHandler::isMutant);
     }
 

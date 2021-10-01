@@ -1,12 +1,16 @@
 package com.meli.codechallenge.service;
 
+import com.meli.codechallenge.dto.Message;
 import com.meli.codechallenge.dto.RequestData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,30 +34,39 @@ public class MutantService {
 
     private static final String VALID_SEQUENCE_REGEX = "[ATCG]+";
 
+    private final PublishService publishService;
 
-    public Mono<ServerResponse> applyMutantValidation(RequestData dna) {
-
-        return isMutant(dna.getDna())
-                .flatMap(isMutant -> TRUE.equals(isMutant) ? ServerResponse.ok().build() : ServerResponse.status(HttpStatus.FORBIDDEN).build())
-                .switchIfEmpty(ServerResponse.badRequest().build());
+    @Autowired
+    public MutantService(PublishService publishService) {
+        this.publishService = publishService;
     }
 
-    public Mono<Boolean> isMutant(String[] dna){
+    public Mono<ServerResponse> applyMutantValidation(RequestData requestData) {
+
+        return Mono.just(isMutant(requestData.getDna()))
+                .flatMap(isMutant ->
+                        TRUE.equals(isMutant) ?
+                        ServerResponse.ok().build() :
+                        ServerResponse.status(HttpStatus.FORBIDDEN).build()
+                );
+    }
+
+    @Cacheable(value = "mutants", key = "T(java.util.Arrays).toString(#dna)")
+    public boolean isMutant(String[] dna){
+
         if(validateDna(dna)) {
-            List<String> columns = getColumns(dna);
-            List<String> diagonals = getDiagonals(dna);
-            List<String> transverseDiagonals = getDiagonalsReversed(dna);
             List<String> dnaList = new ArrayList<>();
             Collections.addAll(dnaList, dna);
-            dnaList.addAll(diagonals);
-            dnaList.addAll(columns);
-            dnaList.addAll(transverseDiagonals);
-
-            return Mono.just(dnaList.stream()
+            dnaList.addAll(getDiagonalsReversed(dna));
+            dnaList.addAll(getColumns(dna));
+            dnaList.addAll(getDiagonals(dna));
+            boolean mutant = dnaList.stream()
                     .filter(this::validateSequence)
-                    .count() >= MIN_MUTANT_SEQUENCE_COUNT);
+                    .count() >= MIN_MUTANT_SEQUENCE_COUNT;
+            publishService.publishMessage(new Message(Arrays.toString(dna), mutant));
+            return mutant;
         }
-        return Mono.empty();
+        return false;
     }
 
 
