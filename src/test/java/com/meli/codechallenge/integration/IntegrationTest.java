@@ -6,15 +6,12 @@ import com.meli.codechallenge.handler.HealthHandler;
 import com.meli.codechallenge.handler.MutantHandler;
 import com.meli.codechallenge.router.Router;
 import com.meli.codechallenge.service.MutantService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.meli.codechallenge.service.PublishService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import redis.embedded.RedisServer;
-
-import java.util.Arrays;
 
 @WebFluxTest({Router.class, HealthHandler.class, MutantHandler.class, MutantService.class})
 class IntegrationTest {
@@ -22,18 +19,9 @@ class IntegrationTest {
     @Autowired
     private WebTestClient client;
 
-    private static RedisServer redisServer;
+    @MockBean
+    private PublishService publishService;
 
-    @BeforeAll
-    static void setUp(){
-        redisServer = new RedisServer();
-        redisServer.start();
-    }
-
-    @AfterAll
-    static void destroy(){
-        redisServer.stop();
-    }
 
     @Test
     void test_healthCheck(){
@@ -49,7 +37,7 @@ class IntegrationTest {
 
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("AAAAT", "AATCT", "TCAGT", "TCCAT", "TCCAT")))
+                .bodyValue(new RequestData(new String[]{"AAAAT", "AATCT", "TCAGT", "TCCAT", "TCCAT"}))
                 .exchange()
                 .expectStatus().isOk();
     }
@@ -59,7 +47,7 @@ class IntegrationTest {
 
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("CCCCG", "AATCG", "TCAGG", "TCCAG", "TCCAT")))
+                .bodyValue(new RequestData(new String[]{"CCCCG", "AATCG", "TCAGG", "TCCAG", "TCCAT"}))
                 .exchange()
                 .expectStatus().isOk();
     }
@@ -69,7 +57,7 @@ class IntegrationTest {
 
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("ATCG", "AATC", "TCAG", "TCCA")))
+                .bodyValue(new RequestData(new String[]{"ATCG", "AATC", "TCAG", "TCCA"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }
@@ -87,7 +75,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_invalidMatrix_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("AAAAA", "AATC", "TCG", "TCCA")))
+                .bodyValue(new RequestData(new String[]{"AAAAA", "AATC", "TCG", "TCCA"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }
@@ -96,7 +84,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_MxNmatrix_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("AAAA", "AATC", "TCGT")))
+                .bodyValue(new RequestData(new String[]{"AAAA", "AATC", "TCGT"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }
@@ -105,7 +93,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_nullSequence_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("AAAA", null, "TCGT", "TCGT")))
+                .bodyValue(new RequestData(new String[]{"AAAA", null, "TCGT", "TCGT"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }
@@ -114,7 +102,7 @@ class IntegrationTest {
     void test_invalidDnaSequence_invalidLetter_isMutant(){
         client.post()
                 .uri("/mutant")
-                .bodyValue(new RequestData(Arrays.asList("AAAB", "ABD", "TCT", "AAAB")))
+                .bodyValue(new RequestData(new String[]{"AAAB", "ABD", "TCT", "AAAB"}))
                 .exchange()
                 .expectStatus().isForbidden();
     }

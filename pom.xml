@@ -16,6 +16,8 @@
     <properties>
         <java.version>11</java.version>
         <jacoco.version>0.8.6</jacoco.version>
+        <google.pubsub>1.114.5</google.pubsub>
+        <sonar.coverage.exclusions>com.meli.codechallenge.dto.*</sonar.coverage.exclusions>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.organization>fcataniae</sonar.organization>
@@ -37,9 +39,9 @@
             <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>3.7.0</version>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+            <version>${google.pubsub}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -60,12 +62,6 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>it.ozimov</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>0.7.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

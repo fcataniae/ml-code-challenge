@@ -1,5 +1,6 @@
 package com.meli.codechallenge.service;
 
+import com.meli.codechallenge.dto.Message;
 import com.meli.codechallenge.dto.RequestData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -7,10 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,17 +34,16 @@ public class MutantService {
 
     private static final String VALID_SEQUENCE_REGEX = "[ATCG]+";
 
-    private final Jedis jedis;
+    private final PublishService publishService;
 
     @Autowired
-    public MutantService(JedisPool jedisPool) {
-        this.jedis = jedisPool.getResource();
+    public MutantService(PublishService publishService) {
+        this.publishService = publishService;
     }
 
-    public Mono<ServerResponse> applyMutantValidation(RequestData RequestData) {
+    public Mono<ServerResponse> applyMutantValidation(RequestData requestData) {
 
-        return Mono.just(RequestData.getDna())
-                .flatMap((List<String> dna) -> Mono.just(isMutantCached(dna)))
+        return Mono.just(isMutant(requestData.getDna()))
                 .flatMap(isMutant ->
                         TRUE.equals(isMutant) ?
                         ServerResponse.ok().build() :
@@ -52,18 +51,7 @@ public class MutantService {
                 );
     }
 
-    public boolean isMutantCached(List<String> dna){
-
-        String key = dna.toString();
-        String value = jedis.get(key);
-        if(value != null){
-            return Boolean.parseBoolean(value);
-        }
-        boolean mutant = isMutant(dna.toArray(new String[0]));
-        jedis.set(key, String.valueOf(mutant));
-        return mutant;
-    }
-
+    @Cacheable(value = "mutants", key = "T(java.util.Arrays).toString(#dna)")
     public boolean isMutant(String[] dna){
 
         if(validateDna(dna)) {
@@ -72,9 +60,11 @@ public class MutantService {
             dnaList.addAll(getDiagonalsReversed(dna));
             dnaList.addAll(getColumns(dna));
             dnaList.addAll(getDiagonals(dna));
-            return dnaList.stream()
+            boolean mutant = dnaList.stream()
                     .filter(this::validateSequence)
                     .count() >= MIN_MUTANT_SEQUENCE_COUNT;
+            publishService.publishMessage(new Message(Arrays.toString(dna), mutant));
+            return mutant;
         }
         return false;
     }
