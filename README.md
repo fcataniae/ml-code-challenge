@@ -111,7 +111,7 @@ gcloud functions deploy subscriber --trigger-topic <topic-name> --entry-point pr
 
 ## TODO List
 
-- [ ] Agregar docker-compose para levantar el proyecto local
+- [x] Agregar docker-compose para levantar el proyecto local
 - [ ] Agregar redis cache para instancias en google app engine
 - [ ] Agregar coverage en archivos .py
 
