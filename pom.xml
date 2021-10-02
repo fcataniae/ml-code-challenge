@@ -17,7 +17,7 @@
         <java.version>11</java.version>
         <jacoco.version>0.8.6</jacoco.version>
         <google.pubsub>1.114.5</google.pubsub>
-        <sonar.coverage.exclusions>**/com/meli/codechallenge/dto/*,**/com/meli/codechallenge/configuration/*</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/com/meli/codechallenge/dto/*,**/com/meli/codechallenge/configuration/**/*</sonar.coverage.exclusions>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.organization>fcataniae</sonar.organization>
