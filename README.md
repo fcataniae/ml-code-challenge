@@ -17,6 +17,17 @@ Solución para code challenge Meli 2021
 - Java 11 
 - [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
 
+## Deployar en un entorno local Dockerizado
+
+sobre el root del proyecto ejecutar los siguientes comandos (pre-requisito tener docker desktop)
+```
+mvn -DskipTests package
+docker-compose up
+```
+una vez up, los endpoints son los siguientes:
+
+- http://localhost:8080/mutant
+- http://localhost:8081/stats
 
 ## Deployar en Google Cloud
 

@@ -1,0 +1,62 @@
+
+services:
+  pubsub:
+    image: messagebird/gcloud-pubsub-emulator
+    environment:
+      PUBSUB_PROJECT1: 'pubsubproject,published-events'
+    ports:
+      - "8681:8681"
+  mutants-backend:
+    build: ./
+    ports:
+      - 8080:8080
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:8681
+      PUBSUB_PROJECT_ID: pubsubproject
+      PROJECT_ID: pubsubproject
+      TOPIC_NAME: published-events
+      PROFILE: docker
+    depends_on:
+      - pubsub
+  postgresql:
+    image: postgres:11.13
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: mutants-user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mutants
+    volumes:
+      - ./create_table.sql:/docker-entrypoint-initdb.d/init.sql
+  statsfunction:
+    build:
+      dockerfile: docker/Dockerfile.statsfunction
+      context: ./
+    depends_on:
+      - postgresql
+    ports:
+      - 8081:8080
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      DB_NAME: mutants
+      DB_USER: mutants-user
+      DB_PASS: password
+  queuefunction:
+    build:
+      dockerfile: docker/Dockerfile.queuefunction
+      context: ./
+    depends_on:
+      - pubsub
+      - postgresql
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:8681
+      PUBSUB_PROJECT_ID : pubsubproject
+      SUBSCRIPTION_NAME: published-events-pull
+      TOPIC_NAME: published-events
+      SUBSCRIPTION_HOST: http://queuefunction:8080
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      DB_NAME: mutants
+      DB_USER: mutants-user
+      DB_PASS: password

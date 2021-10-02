@@ -5,10 +5,12 @@ import com.google.pubsub.v1.TopicName;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.io.IOException;
 
 @Configuration
+@Profile("production")
 public class TopicConfiguration {
 
     @Value("${project.topic.name}")
