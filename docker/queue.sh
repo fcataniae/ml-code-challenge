@@ -1,0 +1,2 @@
+python python-pubsub/samples/snippets/subscriber.py $PUBSUB_PROJECT_ID create-push $TOPIC_NAME $SUBSCRIPTION_NAME $SUBSCRIPTION_HOST
+functions-framework --target=process_insert_event --signature-type=event --port=8080
